@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:focusable_control_builder/focusable_control_builder.dart';
+import 'package:macos/lucky_page.dart';
+import 'package:macos/page_route.dart';
+import 'package:macos/pop_up.dart';
+import 'package:macos/staff_manage_page.dart';
 
 void main() {
+  // runApp(const MyApp());
   runApp(const MyApp());
 }
 
@@ -28,7 +33,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'selina你是我的老婆',),
     );
   }
 }
@@ -55,6 +60,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String? filePath = '';
 
+  _toManage(BuildContext context){
+    Navigator.of(context).push(MaterialPageRoute(builder: (context){
+      return const StaffManagerPage();
+    }));
+  }
+  void _toLucky(BuildContext context){
+    Navigator.of(context).push(MaterialPageRoute(builder: (context){
+      return const LuckyPage();
+    }));
+  }
+
+
   Future<void> _incrementCounter() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
@@ -63,8 +80,29 @@ class _MyHomePageState extends State<MyHomePage> {
       });
       print("filepath:$filePath");
     } else {
-      // User canceled the picker
+
     }
+  }
+
+  void _showPop(double left,double top){
+    Navigator.push(context, PopRoute(child: Popup(
+      child:Container(
+        width: 150,
+        height: 40,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(10))
+        ),
+        child: Center(
+          child: Text("selina你是我的老婆"),
+        ),
+      ),
+      left: left,
+      top: top,
+      onClick: (){
+        print("exit");
+      },
+    ),),);
   }
 
   @override
@@ -82,40 +120,63 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: FocusableControlBuilder(
-        onPressed: _incrementCounter,
+        // onPressed: _incrementCounter,
         builder: (BuildContext context, FocusableControlState control) {
-          return  Center(
-            // Center is a layout widget. It takes a single child and positions it
-            // in the middle of the parent.
-            child: Column(
-              // Column is also a layout widget. It takes a list of children and
-              // arranges them vertically. By default, it sizes itself to fit its
-              // children horizontally, and tries to be as tall as its parent.
-              //
-              // Invoke "debug painting" (press "p" in the console, choose the
-              // "Toggle Debug Paint" action from the Flutter Inspector in Android
-              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-              // to see the wireframe for each widget.
-              //
-              // Column has various properties to control how it sizes itself and
-              // how it positions its children. Here we use mainAxisAlignment to
-              // center the children vertically; the main axis here is the vertical
-              // axis because Columns are vertical (the cross axis would be
-              // horizontal).
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                filePath!='' ? Image(
-                    width: 200,
-                    height: 200,
-                    image:  FileImage(File(filePath!))
-                ):Container()
-              ],
+          return  Listener(
+            onPointerUp: (event){
+              print("鼠标抬起，button类型是${event.buttons}");
+               if(event.buttons == 0){
+
+               }else if(event.buttons == 1){
+
+               }else if(event.buttons == 2){
+
+               }
+            },
+            onPointerDown: (event){
+              print("鼠标按下，button类型是${event.buttons}");
+              if(event.buttons == 2){
+                _showPop(event.position.dx,event.position.dy);
+              }
+            },
+            child: Center(
+              // Center is a layout widget. It takes a single child and positions it
+              // in the middle of the parent.
+              child: Column(
+                // Column is also a layout widget. It takes a list of children and
+                // arranges them vertically. By default, it sizes itself to fit its
+                // children horizontally, and tries to be as tall as its parent.
+                //
+                // Invoke "debug painting" (press "p" in the console, choose the
+                // "Toggle Debug Paint" action from the Flutter Inspector in Android
+                // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+                // to see the wireframe for each widget.
+                //
+                // Column has various properties to control how it sizes itself and
+                // how it positions its children. Here we use mainAxisAlignment to
+                // center the children vertically; the main axis here is the vertical
+                // axis because Columns are vertical (the cross axis would be
+                // horizontal).
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  filePath!='' ? Image(
+                      width: 200,
+                      height: 200,
+                      image:  FileImage(File(filePath!))
+                  ):Container()
+                ],
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: (){
+          Navigator.of(context).push(MaterialPageRoute(builder: (context){
+            return const LuckyPage();
+          }));
+        },
+        // onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
