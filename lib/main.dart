@@ -7,6 +7,8 @@ import 'package:macos/lucky_page.dart';
 import 'package:macos/page_route.dart';
 import 'package:macos/pop_up.dart';
 import 'package:macos/staff_manage_page.dart';
+import 'package:oktoast/oktoast.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   // runApp(const MyApp());
@@ -19,21 +21,23 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    return OKToast(
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          primarySwatch: Colors.blue,
+        ),
+        home: const LuckyPage()
       ),
-      home: const MyHomePage(title: 'selina你是我的老婆',),
     );
   }
 }
@@ -75,9 +79,16 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _incrementCounter() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
+
+      File file = File(result.files.single.path!);
+      var directory = await getApplicationDocumentsDirectory();
+      File newFile = await file.copy('${directory.path}/temp${DateTime.now().millisecond}');
+      print(newFile.path);
       setState(() {
-        filePath = result.files.single.path;
+        filePath = newFile.path;
+
       });
+      print(directory.path);
       print("filepath:$filePath");
     } else {
 
@@ -171,12 +182,17 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        // onPressed: (){
+        //   Navigator.of(context).push(MaterialPageRoute(builder: (context){
+        //     return const LuckyPage();
+        //   }));
+        // },
+        // onPressed: _incrementCounter,
         onPressed: (){
           Navigator.of(context).push(MaterialPageRoute(builder: (context){
-            return const LuckyPage();
+            return const StaffManagerPage();
           }));
         },
-        // onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
