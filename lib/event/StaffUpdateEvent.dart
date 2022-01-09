@@ -1,0 +1,3 @@
+class StaffUpdateEvent{
+  StaffUpdateEvent();
+}
