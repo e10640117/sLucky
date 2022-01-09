@@ -48,7 +48,7 @@ class StaffInfoWidgetState extends State<StaffInfoWidget>{
         width: 600,
         height: 420,
         decoration: BoxDecoration(
-          border: Border.all(color:Constants.themeColor,width: 5),
+          border: Border.all(color:Constants.themeColor,width: 2),
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(10))
         ),
@@ -66,6 +66,7 @@ class StaffInfoWidgetState extends State<StaffInfoWidget>{
                 Container(
                   width: 200,
                   child: TextField(
+                    style: TextStyle(decorationColor: Constants.themeColor),
                       controller: controller,decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: '请输入员工姓名',
@@ -125,9 +126,11 @@ class StaffInfoWidgetState extends State<StaffInfoWidget>{
                     widget.staffModel!.name = controller.text;
                     if(widget.isModify){
                       await dao.updateStaff(widget.staffModel!,widget.position!);
+                      showToast('修改成功');
                       Navigator.pop(context);
                       Constants.eventBus.fire(StaffUpdateEvent());
                     }else {
+                      showToast('添加成功');
                       await dao.addStaff(widget.staffModel!);
                       Navigator.pop(context);
                       Constants.eventBus.fire(StaffUpdateEvent());
@@ -159,6 +162,7 @@ class StaffInfoWidgetState extends State<StaffInfoWidget>{
                   child: InkWell(
                     onTap: (){
                       dao.deleteStaff(widget.staffModel!);
+                      showToast('删除成功');
                       Navigator.pop(context);
                       Constants.eventBus.fire(StaffUpdateEvent());
                     },

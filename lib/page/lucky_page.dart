@@ -35,10 +35,6 @@ class LuckyPageState extends State<LuckyPage> {
   var random = Random();
   Timer? timer;
   bool pause = true;
-  String filePath1 = "assets/images/selina2.jpeg";
-  String filePath2 =
-      "assets/images/hebe2.jpeg";
-  String filePath3 = "assets/images/ella2.jpeg";
   Color bgColor = Colors.redAccent;
   String luckyedList = "";
   bool isEmpty = true;
@@ -55,9 +51,11 @@ class LuckyPageState extends State<LuckyPage> {
       staffList.clear();
       if(config.list!.isNotEmpty){
         isEmpty = false;
+        staffList.addAll(config.list!);
+        currentStaff = staffList[0];
+      }else{
+        isEmpty = true;
       }
-      staffList.addAll(config.list!);
-      currentStaff = staffList[0];
     });
   }
 
@@ -68,7 +66,7 @@ class LuckyPageState extends State<LuckyPage> {
     }
     if(pause){
       if(staffList.isEmpty){
-          showToast("剩余员工为0，请点击右上角重置按钮");
+          showToast("剩余员工为0，请点击右上角刷新按钮");
           return;
       }
       timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
@@ -172,7 +170,7 @@ class LuckyPageState extends State<LuckyPage> {
                         top: 10,
                         bottom: 10,
                         child:ClipOval(
-                          child: currentStaff == null ? Image(
+                          child: isEmpty ? Image(
                               fit: BoxFit.fill,
                               image: AssetImage("assets/images/default.jpg")):
                           Image(
@@ -187,7 +185,7 @@ class LuckyPageState extends State<LuckyPage> {
                         width: 400,
                         color: bgColor,
                         child: Center(
-                          child: Text("${currentStaff?.name}",style: const TextStyle(
+                          child: Text("${isEmpty ? '霸道总裁':currentStaff!.name}",style: const TextStyle(
                               color: Colors.black
                           ),),
                         ),
