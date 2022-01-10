@@ -98,7 +98,7 @@ class StaffInfoWidgetState extends State<StaffInfoWidget>{
                     )
                   ),
                   onTap: (){
-                    _selectPhoto().then((value){
+                    FileUtil.selectPhoto().then((value){
                       if(value!=null){
                         setState(() {
                           widget.staffModel!.imagePath = value.path;
@@ -191,19 +191,6 @@ class StaffInfoWidgetState extends State<StaffInfoWidget>{
           ],
         ),
       );
-  }
-
-  Future<File?> _selectPhoto() async{
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      var directory = await getApplicationDocumentsDirectory();
-      File newFile = await file.copy('${directory.path}/${DateTime.now().microsecondsSinceEpoch}');
-      print(newFile.path);
-      return newFile;
-    } else {
-      return null;
-    }
   }
 
 }

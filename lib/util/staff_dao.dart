@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:macos/model/staff_model.dart';
 import 'package:macos/util/file_util.dart';
 
@@ -43,10 +45,17 @@ class StaffDao{
     FileUtil.setStaffConfig(config!);
   }
 
-  deleteStaff(StaffModel staffModel){
+  deleteStaff(StaffModel staffModel) async{
       StaffModel target = config!.list!.firstWhere((element) => element.name == staffModel.name);
       bool remove = config!.list!.remove(target);
       print('remove${remove}');
+      if(remove){
+        File file = File(target.imagePath!);
+        bool exist = await file.exists();
+        if(exist){
+          file.delete();
+        }
+      }
       FileUtil.setStaffConfig(config!);
   }
 

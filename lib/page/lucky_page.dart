@@ -5,9 +5,12 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:focusable_control_builder/focusable_control_builder.dart';
+import 'package:macos/event/ConfigUpdateEvent.dart';
 import 'package:macos/marquee_widget.dart';
+import 'package:macos/model/config_model.dart';
 import 'package:macos/widget/setting_dialog.dart';
 import 'package:macos/model/staff_model.dart';
 import 'package:oktoast/oktoast.dart';
@@ -38,24 +41,40 @@ class LuckyPageState extends State<LuckyPage> {
   Color bgColor = Colors.redAccent;
   String luckyedList = "";
   bool isEmpty = true;
+  ConfigModel? config;
+  bool useDefaultBg = true;
+  int currentIndex = 0;
 
   @override
   void initState() {
-    _initConfig();
+    _initStaff();
+    initConfig();
+    Constants.eventBus.on<ConfigUpdateEvent>().listen((event) {
+      setState(() {
+        this.config = event.configModel;
+      });
+    });
     super.initState();
   }
 
-  void _initConfig()async{
-    StaffConfigModel config = await FileUtil.getStaffConfig();
+  void _initStaff()async{
+    StaffConfigModel staffConfig = await FileUtil.getStaffConfig();
     setState(() {
       staffList.clear();
-      if(config.list!.isNotEmpty){
+      if(staffConfig.list!.isNotEmpty){
         isEmpty = false;
-        staffList.addAll(config.list!);
+        staffList.addAll(staffConfig.list!);
         currentStaff = staffList[0];
       }else{
         isEmpty = true;
       }
+    });
+  }
+
+  void initConfig()async{
+    ConfigModel config = await FileUtil.getConfig();
+    setState(() {
+      this.config = config;
     });
   }
 
@@ -70,7 +89,10 @@ class LuckyPageState extends State<LuckyPage> {
           return;
       }
       timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-        int randomIndex = random.nextInt(staffList.length);
+        int randomIndex = 0;
+        if(staffList.length > 1){
+          randomIndex = _randomIndex(staffList.length);
+        }
         setState(() {
           currentStaff = staffList[randomIndex];
           bgColor = Colors.redAccent;
@@ -89,21 +111,34 @@ class LuckyPageState extends State<LuckyPage> {
     });
   }
 
+  /**
+   * 产生跟上次不一样的随机数，避免列表较少时随机起来比较卡顿
+   */
+  int _randomIndex(int len){//
+    int temp =  random.nextInt(len);
+    while(currentIndex == temp){
+      temp = random.nextInt(len);
+    }
+    currentIndex = temp;
+    return temp;
+  }
+
   void _reset(){
-    showToast("重置成功");
+    showToast("刷新成功");
     luckyedList = "";
     bgColor = Colors.yellowAccent;
     pause = true;
     timer?.cancel();
-    _initConfig();
+    _initStaff();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Color(0xffF2170C),
-        title: const Center(child: Text("昆山隆翰包装材料有限公司2021尾牙宴",style: TextStyle(fontWeight: FontWeight.w700,fontSize: 26),)),
+        title:  Text(config!= null && config!.title!.isNotEmpty ?  config!.title!:Constants.defaultTitle,style: TextStyle(fontWeight: FontWeight.w700,fontSize: 26,color: Colors.yellow),),
         actions: [
           InkWell(
             onTap: _reset,
@@ -118,23 +153,42 @@ class LuckyPageState extends State<LuckyPage> {
         ],
       ),
       body:Container(
-        decoration: const BoxDecoration(
-            image: DecorationImage(
+        decoration: BoxDecoration(
+            image: (config != null && !config!.useDefaultBg! && config!.bgPath!=null && config!.bgPath!.isNotEmpty)? DecorationImage(fit:BoxFit.fill,image: FileImage(File(config!.bgPath!))):DecorationImage(
                 fit: BoxFit.fill,
-                image: AssetImage("assets/images/bg_lucky4.jpeg")
+                image:  AssetImage("assets/images/bg_lucky4.jpeg")
             )
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
             Positioned(
-              top: 10,
-              child: MarqueeWidget(
-              direction: Axis.horizontal,
-              child: const Text("感谢公司全体员工一年来的辛苦与付出！感谢亲朋好友一年来的支持与帮助！",style: TextStyle(
-                  color: Colors.white,fontSize: 30
-              ),),
-            ),),
+              left: 100,
+                child: Container(
+                  padding: EdgeInsets.only(top: 20,bottom: 20),
+                  width: 100,
+              decoration: BoxDecoration(image: DecorationImage(
+                fit: BoxFit.fill,
+                image: AssetImage('assets/images/duilian_bg.jpeg'),
+              )),
+                  child: Center(child: Text(formatContent(config!= null && config!.leftContent!.isNotEmpty ? config!.leftContent!:Constants.leftContent),style: TextStyle(
+                    color: Colors.yellow,fontSize: 26
+                  ),)),
+            )),
+
+            Positioned(
+                right: 100,
+                child: Container(
+                  padding: EdgeInsets.only(top: 20,bottom: 20),
+                  width: 100,
+                  decoration: BoxDecoration(image: DecorationImage(
+                    fit: BoxFit.fill,
+                    image: AssetImage('assets/images/duilian_bg.jpeg'),
+                  )),
+                  child: Center(child: Text(formatContent(config!= null && config!.rightContent!.isNotEmpty ? config!.rightContent!:Constants.rightContent),style: TextStyle(
+                      color: Colors.yellow,fontSize: 26
+                  ),)),
+                )),
             Positioned(
                 top: 10,
                 right: 10,
@@ -152,46 +206,41 @@ class LuckyPageState extends State<LuckyPage> {
                   ),
                 )),
             Center(
-              child: ClipOval(
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Positioned(child: ClipOval(
-                        child: Container(
-                          color: bgColor,
-                        ),
-                      )),
-                      Positioned(
-                        left: 10,
-                        right: 10,
-                        top: 10,
-                        bottom: 10,
-                        child:ClipOval(
-                          child: isEmpty ? Image(
-                              fit: BoxFit.fill,
-                              image: AssetImage("assets/images/default.jpg")):
-                          Image(
-                            fit: BoxFit.fill,
-                            image: FileImage(File(currentStaff!.imagePath!)),
-                            // image: FileImage(File(currentStaff.headImage!)),
-                          ),
-                        ),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: bgColor,width: 2),
+                  borderRadius: BorderRadius.all(Radius.circular(5))
+                ),
+                width: 400,
+                height: 400,
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child:isEmpty ? Image(
+                          fit: BoxFit.fill,
+                          image: AssetImage("assets/images/default.jpg")):
+                      Image(
+                        fit: BoxFit.fill,
+                        image: FileImage(File(currentStaff!.imagePath!)),
+                        // image: FileImage(File(currentStaff.headImage!)),
                       ),
-                      Positioned(bottom:0 ,child: Container(
-                        height:50 ,
-                        width: 400,
-                        color: bgColor,
-                        child: Center(
-                          child: Text("${isEmpty ? '霸道总裁':currentStaff!.name}",style: const TextStyle(
-                              color: Colors.black
-                          ),),
-                        ),
-                      )),
-                    ],
-                  ),
+                    ),
+                    Positioned(bottom:0 ,child: Container(
+                      height:40 ,
+                      width: 400,
+                      color: bgColor,
+                      child: Center(
+                        child: Text("${isEmpty ? '霸道总裁':currentStaff!.name}",style: const TextStyle(
+                            color: Colors.black
+                        ),),
+                      ),
+                    )),
+                  ],
                 ),
               ),
             ),
@@ -227,6 +276,16 @@ class LuckyPageState extends State<LuckyPage> {
         ),
       )
     );
+  }
+
+  String formatContent(String content){
+    StringBuffer sb = StringBuffer();
+    content.characters.forEach((element) {
+      sb.write('$element\n');
+    });
+    String result = sb.toString();
+    return result.substring(0,result.length-1);
+
   }
 
 
